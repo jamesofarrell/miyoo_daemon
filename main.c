@@ -135,7 +135,7 @@ int main(int argc, char** argv)
 {
   int lid=0, vol=0, fbp=0;
   char buf[255]={0};
-  unsigned long ret;
+  unsigned long ret, lastret;
   int fb0, kbd, snd, vir;
 
   create_daemon();
@@ -175,54 +175,57 @@ int main(int argc, char** argv)
   vir = open("/dev/miyoo_vir", O_RDWR);
   ioctl(vir, MIYOO_VIR_SET_VER, ret);
   close(vir);
+  lastret = 0;
   while(1){
     usleep(100000);
     ioctl(kbd, MIYOO_KBD_GET_HOTKEY, &ret);
-    if(ret == 0){
+    if(ret == 0 && lastret == 0){
       continue;
-    }
-
-    switch(ret){
-    case 1:
-      //printf("backlight++\n");
-      if(lid < 10){
-        lid+= 1;
-        write_conf(MIYOO_LID_FILE, lid);
-        sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF);
-        system(buf);
-        info_fb0(fb0, lid, vol, 1);
+    } else if(ret == 0 && lastret != 0) {
+      switch(ret){
+      case 1:
+        //printf("backlight++\n");
+        if(lid < 10){
+          lid+= 1;
+          write_conf(MIYOO_LID_FILE, lid);
+          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF);
+          system(buf);
+          info_fb0(fb0, lid, vol, 1);
+        }
+        break;
+      case 2:
+        //printf("backlight--\n");
+        if(lid > 1){
+          lid-= 1;
+          write_conf(MIYOO_LID_FILE, lid);
+          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF);
+          system(buf);
+          info_fb0(fb0, lid, vol, 1);
+        }
+        break;
+      case 3:
+        //printf("sound++\n");
+        if(vol < 9){
+          vol+= 1;
+          write_conf(MIYOO_VOL_FILE, vol);
+          ioctl(snd, MIYOO_SND_SET_VOLUME, vol);
+          info_fb0(fb0, lid, vol, 1);
+        }
+        break;
+      case 4:
+        //printf("sound--\n");
+        if(vol > 0){
+          vol-= 1;
+          write_conf(MIYOO_VOL_FILE, vol);
+          ioctl(snd, MIYOO_SND_SET_VOLUME, vol);
+          info_fb0(fb0, lid, vol, 1);
+        }
+        break;
       }
-      break;
-    case 2:
-      //printf("backlight--\n");
-      if(lid > 1){
-        lid-= 1;
-        write_conf(MIYOO_LID_FILE, lid);
-        sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF);
-        system(buf);
-        info_fb0(fb0, lid, vol, 1);
-      }
-      break;
-    case 3:
-      //printf("sound++\n");
-      if(vol < 9){
-        vol+= 1;
-        write_conf(MIYOO_VOL_FILE, vol);
-        ioctl(snd, MIYOO_SND_SET_VOLUME, vol);
-        info_fb0(fb0, lid, vol, 1);
-      }
-      break;
-    case 4:
-      //printf("sound--\n");
-      if(vol > 0){
-        vol-= 1;
-        write_conf(MIYOO_VOL_FILE, vol);
-        ioctl(snd, MIYOO_SND_SET_VOLUME, vol);
-        info_fb0(fb0, lid, vol, 1);
-      }
-      break;
-    }
+    } 
+    lastret = ret;
   }
+ 
   close(fb0);
   close(kbd);
   close(snd);
