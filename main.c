@@ -236,6 +236,65 @@ int main(int argc, char** argv)
           ioctl(snd, MIYOO_SND_SET_VOLUME, vol);
         }
         break;
+      case 6: 
+      //printf("volume rotate up\n"); 
+        if(vol < 9){ 
+          vol+= 1;
+          write_conf(MIYOO_VOL_FILE, vol);
+          ioctl(snd, MIYOO_SND_SET_VOLUME, vol);
+          info_fb0(fb0, lid, vol, 1);
+        } else { 
+          vol = 0;
+          write_conf(MIYOO_VOL_FILE, vol);
+          ioctl(snd, MIYOO_SND_SET_VOLUME, vol);
+          info_fb0(fb0, lid, vol, 1);
+        } 
+      case 7: 
+      //printf("volume rotate down\n"); 
+        if(vol < 1){ 
+          vol = 9;
+          write_conf(MIYOO_VOL_FILE, vol);
+          ioctl(snd, MIYOO_SND_SET_VOLUME, vol);
+          info_fb0(fb0, lid, vol, 1);
+        } else { 
+          vol -= 1;
+          write_conf(MIYOO_VOL_FILE, vol);
+          ioctl(snd, MIYOO_SND_SET_VOLUME, vol);
+          info_fb0(fb0, lid, vol, 1);
+        } 
+      case 8: 
+      //printf("backlight rotate up\n"); 
+        if(lid < 10){ 
+          lid+= 1; 
+          write_conf(MIYOO_LID_FILE, lid); 
+          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF); 
+          system(buf); 
+          info_fb0(fb0, lid, vol, 1); 
+        } else { 
+          lid= 1; 
+          write_conf(MIYOO_LID_FILE, lid); 
+          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF); 
+          system(buf); 
+          info_fb0(fb0, lid, vol, 1); 
+        } 
+      break;
+      case 9: 
+      //printf("backlight rotate down\n"); 
+        if(lid == 1){ 
+          lid = 10; 
+          write_conf(MIYOO_LID_FILE, lid); 
+          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF); 
+          system(buf); 
+          info_fb0(fb0, lid, vol, 1); 
+        } else { 
+          lid -= 1; 
+          write_conf(MIYOO_LID_FILE, lid); 
+          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF); 
+          system(buf); 
+          info_fb0(fb0, lid, vol, 1); 
+        } 
+      break;
+ 	
       }
     } 
     lastret = ret;
