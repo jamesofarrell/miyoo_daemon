@@ -137,6 +137,7 @@ int main(int argc, char** argv)
   char buf[255]={0};
   unsigned long ret, lastret;
   int fb0, kbd, snd, vir;
+  unsigned char actionmap[4]={1,2,3,4};
 
   create_daemon();
   fb0 = open("/dev/miyoo_fb0", O_RDWR);
@@ -182,7 +183,7 @@ int main(int argc, char** argv)
     if(ret == 0 && lastret == 0){
       continue;
     } else if(ret == 0 && lastret != 0) {
-      switch(ret){
+      switch(actionmap[ret]){
       case 1:
         //printf("backlight++\n");
         if(lid < 10){
@@ -219,6 +220,20 @@ int main(int argc, char** argv)
           write_conf(MIYOO_VOL_FILE, vol);
           ioctl(snd, MIYOO_SND_SET_VOLUME, vol);
           info_fb0(fb0, lid, vol, 1);
+        }
+        break;
+      case 5:
+        //printf("mute\n");
+        if(vol == 0){
+          vol = read_conf(MIYOO_VOL_FILE);
+          if(vol < 1){
+            vol = 5;
+            write_conf(MIYOO_VOL_FILE, vol);
+          }
+          ioctl(snd, MIYOO_SND_SET_VOLUME, vol);
+        } else {
+          vol = 0;
+          ioctl(snd, MIYOO_SND_SET_VOLUME, vol);
         }
         break;
       }
