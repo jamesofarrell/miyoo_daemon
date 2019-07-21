@@ -4,7 +4,7 @@ button config format: `a:x:b:y`
 button config default: `1:2:3:4`  
 button mappings:  
 1 = backlight up  
-2 = blacklight down  
+2 = backlight down  
 3 = volume up  
 4 = volume down  
 5 = mute  
