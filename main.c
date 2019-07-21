@@ -44,6 +44,7 @@
 #define MIYOO_LID_FILE        "/mnt/.backlight.conf"
 #define MIYOO_VOL_FILE        "/mnt/.volume.conf"
 #define MIYOO_LID_CONF        "/sys/devices/platform/backlight/backlight/backlight/brightness"
+#define MIYOO_BUTTON_FILE     "/mnt/.buttons.conf"
 
 static void create_daemon(void)
 {
@@ -123,6 +124,86 @@ static void write_conf(const char *file, int val)
   }
 }
 
+char** str_split(char* a_str, const char a_delim)
+{
+    char** result    = 0;
+    size_t count     = 0;
+    char* tmp        = a_str;
+    char* last_comma = 0;
+    char delim[2];
+    delim[0] = a_delim;
+    delim[1] = 0;
+
+    /* Count how many elements will be extracted. */
+    while (*tmp)
+    {
+        if (a_delim == *tmp)
+        {
+            count++;
+            last_comma = tmp;
+        }
+        tmp++;
+    }
+
+    /* Add space for trailing token. */
+    count += last_comma < (a_str + strlen(a_str) - 1);
+
+    /* Add space for terminating null string so caller
+       knows where the list of returned strings ends. */
+    count++;
+
+    result = malloc(sizeof(char*) * count);
+
+    if (result)
+    {
+        size_t idx  = 0;
+        char* token = strtok(a_str, delim);
+
+        while (token)
+        {
+            *(result + idx++) = strdup(token);
+            token = strtok(0, delim);
+        }
+        *(result + idx) = 0;
+    }
+
+    return result;
+}
+
+static void read_button_config(const char *file, char *vals)
+{
+  
+  int i, fd;
+  char buf[20]={0};
+  
+  fd = open(file, O_RDWR);
+  if(fd < 0){
+    return;
+  }
+  else{
+    read(fd, buf, sizeof(buf));
+    for(i=0; i<strlen(buf); i++){
+      if(buf[i] == '\r'){
+        buf[i] = 0;
+      }
+      if(buf[i] == '\n'){
+        buf[i] = 0;
+      }
+      if(buf[i] == ' '){
+        buf[i] = 0;
+      }
+    }
+    char** tokens;
+    tokens = str_split(buf, ':');
+    for(i=0; i<4; i++){
+      vals[i] = atol(tokens[i]);
+    }
+    free(tokens);
+  }
+  close(fd);
+  return;
+}
+
 static void info_fb0(int fb0, int lid, int vol, int show_osd)
 {
   unsigned long val;
@@ -137,7 +218,7 @@ int main(int argc, char** argv)
   char buf[255]={0};
   unsigned long ret, lastret;
   int fb0, kbd, snd, vir;
-  unsigned char actionmap[4]={10,20,6,5};
+  unsigned char actionmap[4]={1,2,3,4};
 
   create_daemon();
   fb0 = open("/dev/miyoo_fb0", O_RDWR);
@@ -166,6 +247,9 @@ int main(int argc, char** argv)
     write_conf(MIYOO_VOL_FILE, vol);
   }
   ioctl(snd, MIYOO_SND_SET_VOLUME, vol);
+
+  // buttons
+  read_button_config(MIYOO_BUTTON_FILE,actionmap);
 
   // info fb0
   info_fb0(fb0, lid, vol, 0);
