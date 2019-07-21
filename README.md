@@ -1,7 +1,7 @@
 # miyoo_daemon
 button config location: /mnt/.buttons.conf  
-button config format: a:x:b:y  
-button config default: 1:2:3:4  
+button config format: `a:x:b:y`  
+button config default: `1:2:3:4`  
 button mappings:  
 1 = backlight up  
 2 = blacklight down  
