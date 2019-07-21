@@ -263,7 +263,7 @@ int main(int argc, char** argv)
   close(vir);
   lastret = 0;
   while(1){
-    usleep(100000);
+    usleep(50000);
     ioctl(kbd, MIYOO_KBD_GET_HOTKEY, &ret);
     if(ret == 0 && lastret == 0){
       continue;
