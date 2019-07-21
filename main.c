@@ -219,6 +219,7 @@ int main(int argc, char** argv)
   unsigned long ret, lastret;
   int fb0, kbd, snd, vir;
   unsigned char actionmap[4]={1,2,3,4};
+  setvbuf (stdout, NULL, _IONBF, 0);
 
   create_daemon();
   fb0 = open("/dev/miyoo_fb0", O_RDWR);
@@ -321,7 +322,7 @@ int main(int argc, char** argv)
         }
         break;
       case 6: 
-      //printf("volume rotate up\n"); 
+        //printf("volume rotate up\n"); 
         if(vol < 9){ 
           vol+= 1;
           write_conf(MIYOO_VOL_FILE, vol);
@@ -333,8 +334,9 @@ int main(int argc, char** argv)
           ioctl(snd, MIYOO_SND_SET_VOLUME, vol);
           info_fb0(fb0, lid, vol, 1);
         } 
+        break;
       case 7: 
-      //printf("volume rotate down\n"); 
+        //printf("volume rotate down\n"); 
         if(vol < 1){ 
           vol = 9;
           write_conf(MIYOO_VOL_FILE, vol);
@@ -346,8 +348,9 @@ int main(int argc, char** argv)
           ioctl(snd, MIYOO_SND_SET_VOLUME, vol);
           info_fb0(fb0, lid, vol, 1);
         } 
+        break;
       case 8: 
-      //printf("backlight rotate up\n"); 
+        //printf("backlight rotate up\n"); 
         if(lid < 10){ 
           lid+= 1; 
           write_conf(MIYOO_LID_FILE, lid); 
@@ -361,9 +364,9 @@ int main(int argc, char** argv)
           system(buf); 
           info_fb0(fb0, lid, vol, 1); 
         } 
-      break;
+        break;
       case 9: 
-      //printf("backlight rotate down\n"); 
+        //printf("backlight rotate down\n"); 
         if(lid == 1){ 
           lid = 10; 
           write_conf(MIYOO_LID_FILE, lid); 
@@ -377,9 +380,9 @@ int main(int argc, char** argv)
           system(buf); 
           info_fb0(fb0, lid, vol, 1); 
         } 
-      break;
+        break;
       case 10: 
-      //printf("backlight min max\n"); 
+        //printf("backlight min max\n"); 
         if(lid != 10){ 
           lid = 10; 
           write_conf(MIYOO_LID_FILE, lid); 
@@ -394,8 +397,9 @@ int main(int argc, char** argv)
           info_fb0(fb0, lid, vol, 1); 
         } 
       break;
-      case 20:
+        case 20:
         {
+          //printf("power\n"); 
           int status;
           pid_t son = fork();
           if (!son) {
@@ -405,6 +409,7 @@ int main(int argc, char** argv)
         }
       case 21:
         {
+          //printf("kill\n"); 
           int status;
           pid_t son = fork();
           if (!son) {
