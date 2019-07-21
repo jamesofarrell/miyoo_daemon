@@ -137,7 +137,7 @@ int main(int argc, char** argv)
   char buf[255]={0};
   unsigned long ret, lastret;
   int fb0, kbd, snd, vir;
-  unsigned char actionmap[4]={1,2,3,4};
+  unsigned char actionmap[4]={10,20,6,5};
 
   create_daemon();
   fb0 = open("/dev/miyoo_fb0", O_RDWR);
@@ -183,7 +183,7 @@ int main(int argc, char** argv)
     if(ret == 0 && lastret == 0){
       continue;
     } else if(ret == 0 && lastret != 0) {
-      switch(actionmap[ret]){
+      switch(actionmap[lastret-1]){
       case 1:
         //printf("backlight++\n");
         if(lid < 10){
@@ -294,7 +294,41 @@ int main(int argc, char** argv)
           info_fb0(fb0, lid, vol, 1); 
         } 
       break;
- 	
+      case 10: 
+      //printf("backlight min max\n"); 
+        if(lid != 10){ 
+          lid = 10; 
+          write_conf(MIYOO_LID_FILE, lid); 
+          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF); 
+          system(buf); 
+          info_fb0(fb0, lid, vol, 1); 
+        } else { 
+          lid = 2; 
+          write_conf(MIYOO_LID_FILE, lid); 
+          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF); 
+          system(buf); 
+          info_fb0(fb0, lid, vol, 1); 
+        } 
+      break;
+      case 20:
+        {
+          int status;
+          pid_t son = fork();
+          if (!son) {
+            execlp("sh", "sh", "-c", "kill $(ps -al | grep \"/mnt/\" | grep -v \"/kernel/\" | tr -s [:blank:] | cut -d \" \" -f 2) ; sleep 0.1 ; sync && poweroff",  NULL);
+          }
+          break;
+        }
+      case 21:
+        {
+          int status;
+          pid_t son = fork();
+          if (!son) {
+            //execlp("sh", "sh", "/mnt/kernel/killgui.sh", NULL);
+            execlp("sh", "sh", "-c", "kill $(ps -al | grep \"/mnt/\" | grep -v \"/kernel/\" | tr -s [:blank:] | cut -d \" \" -f 2)",  NULL);
+          }
+          break;
+        }
       }
     } 
     lastret = ret;
