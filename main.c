@@ -174,7 +174,7 @@ static void read_button_config(const char *file, char *vals)
 {
   
   int i, fd;
-  char buf[20]={0};
+  char buf[40]={0};
   
   fd = open(file, O_RDWR);
   if(fd < 0){
@@ -218,7 +218,7 @@ int main(int argc, char** argv)
   char buf[255]={0};
   unsigned long ret, lastret;
   int fb0, kbd, snd, vir;
-  unsigned char actionmap[4]={1,2,3,4};
+  unsigned char actionmap[8]={1,2,3,4,10,20,3,5};
   setvbuf (stdout, NULL, _IONBF, 0);
 
   create_daemon();
@@ -262,12 +262,24 @@ int main(int argc, char** argv)
   ioctl(vir, MIYOO_VIR_SET_VER, ret);
   close(vir);
   lastret = 0;
+  int counter = 0;
   while(1){
     usleep(50000);
     ioctl(kbd, MIYOO_KBD_GET_HOTKEY, &ret);
     if(ret == 0 && lastret == 0){
       continue;
+    } else if (ret == lastret || ret == lastret+4) {
+	    counter++;
+	    if (counter > 19) {
+        if (lastret != ret+4) {
+          lastret = ret + 4;
+        }
+      } else {
+        lastret = ret;
+      }
+      continue;
     } else if(ret == 0 && lastret != 0) {
+      counter = 0;
       switch(actionmap[lastret-1]){
       case 1:
         //printf("backlight++\n");
