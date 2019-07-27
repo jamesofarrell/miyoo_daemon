@@ -263,14 +263,16 @@ int main(int argc, char** argv)
   close(vir);
   lastret = 0;
   int counter = 0;
+  int actioned = 0;
   while(1){
-    usleep(50000);
+    usleep(40000);
     ioctl(kbd, MIYOO_KBD_GET_HOTKEY, &ret);
     if(ret == 0 && lastret == 0){
+      actioned = 0;
       continue;
-    } else if (ret == lastret || ret == lastret+4) {
+    } else if (ret == lastret) {
 	    counter++;
-	    if (counter > 19) {
+	    if (counter > 15) {
         if (lastret != ret+4) {
           lastret = ret + 4;
         }
@@ -278,8 +280,9 @@ int main(int argc, char** argv)
         lastret = ret;
       }
       continue;
-    } else if(ret == 0 && lastret != 0) {
+    } else if(actioned == 0 && ( (ret == 0 && lastret != 0) || (ret + 4 == lastret) ) ) {
       counter = 0;
+      actioned = 1;
       switch(actionmap[lastret-1]){
       case 1:
         //printf("backlight++\n");
