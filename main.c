@@ -46,6 +46,10 @@
 #define MIYOO_LID_CONF        "/sys/devices/platform/backlight/backlight/backlight/brightness"
 #define MIYOO_BUTTON_FILE     "/mnt/.buttons.conf"
 
+#define BUTTON_COUNT	12
+
+unsigned char actionmap[BUTTON_COUNT*2]={1,2,3,4,3,4,2,1,0,5,0,0,0,0,0,0,0,0,0,0,20,0,0,0};
+
 static void create_daemon(void)
 {
   int x;
@@ -174,7 +178,7 @@ static void read_button_config(const char *file, char *vals)
 {
   
   int i, fd;
-  char buf[40]={0};
+  char buf[BUTTON_COUNT * 8 + 12]={0};
   
   fd = open(file, O_RDWR);
   if(fd < 0){
@@ -195,7 +199,7 @@ static void read_button_config(const char *file, char *vals)
     }
     char** tokens;
     tokens = str_split(buf, ':');
-    for(i=0; i<4; i++){
+    for(i=0; i<BUTTON_COUNT*2; i++){
       vals[i] = atol(tokens[i]);
     }
     free(tokens);
@@ -212,13 +216,20 @@ static void info_fb0(int fb0, int lid, int vol, int show_osd)
   ioctl(fb0, MIYOO_FB0_PUT_OSD, val);
 }
 
+void my_handler(int signum)
+{
+    if (signum == SIGUSR1)
+    {
+       read_button_config(MIYOO_BUTTON_FILE,actionmap);
+    }
+}
+
 int main(int argc, char** argv)
 {
   int lid=0, vol=0, fbp=0;
   char buf[255]={0};
   unsigned long ret, lastret;
   int fb0, kbd, snd, vir;
-  unsigned char actionmap[8]={1,2,3,4,10,20,3,5};
   setvbuf (stdout, NULL, _IONBF, 0);
 
   create_daemon();
@@ -251,6 +262,7 @@ int main(int argc, char** argv)
 
   // buttons
   read_button_config(MIYOO_BUTTON_FILE,actionmap);
+  signal(SIGUSR1, my_handler);
 
   // info fb0
   info_fb0(fb0, lid, vol, 0);
@@ -273,17 +285,20 @@ int main(int argc, char** argv)
     } else if (ret == lastret) {
 	    counter++;
 	    if (counter > 15) {
-        if (lastret != ret+4) {
-          lastret = ret + 4;
+        if (lastret != ret + BUTTON_COUNT) {
+          lastret = ret + BUTTON_COUNT;
         }
       } else {
         lastret = ret;
       }
       continue;
-    } else if(actioned == 0 && ( (ret == 0 && lastret != 0) || (ret + 4 == lastret) ) ) {
+    } else if(actioned == 0 && ( (ret == 0 && lastret != 0) || (ret + BUTTON_COUNT == lastret) ) ) {
       counter = 0;
       actioned = 1;
       switch(actionmap[lastret-1]){
+      case 0:
+	  ;
+	  break;
       case 1:
         //printf("backlight++\n");
         if(lid < 10){
@@ -411,17 +426,22 @@ int main(int argc, char** argv)
           system(buf); 
           info_fb0(fb0, lid, vol, 1); 
         } 
-      break;
-        case 20:
+  	break ;
+   	case 11:
+      	  system("mount -o remount,rw,utf8 /dev/mmcblk0p4");
+          break;
+      case 12:
+          system("mount -o remount,ro,utf8 /dev/mmcblk0p4");
+          break;
+      case 20:
         {
-          //printf("power\n"); 
           int status;
           pid_t son = fork();
           if (!son) {
             execlp("sh", "sh", "-c", "kill $(ps -al | grep \"/mnt/\" | grep -v \"/kernel/\" | tr -s [:blank:] | cut -d \" \" -f 2) ; sleep 0.1 ; sync && poweroff",  NULL);
           }
           break;
-        }
+	        }
       case 21:
         {
           //printf("kill\n"); 
@@ -431,7 +451,7 @@ int main(int argc, char** argv)
             //execlp("sh", "sh", "/mnt/kernel/killgui.sh", NULL);
             execlp("sh", "sh", "-c", "kill $(ps -al | grep \"/mnt/\" | grep -v \"/kernel/\" | tr -s [:blank:] | cut -d \" \" -f 2)",  NULL);
           }
-          break;
+          break; 
         }
       }
     } 
@@ -443,4 +463,5 @@ int main(int argc, char** argv)
   close(snd);
   return EXIT_SUCCESS;
 }
+
 
