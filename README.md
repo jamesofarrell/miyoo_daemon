@@ -1,6 +1,6 @@
 # miyoo_daemon
 
-##Default Button Mappings
+## Default Button Mappings
 
 | BUTTON | ACTION |
 |  --- | --- |
@@ -11,7 +11,7 @@
 | Start | Mute |
 | Hold Select | Quick Shutdown |
 
-##Config
+## Config
 button config location  
 `/mnt/.buttons.conf`  
 button config format  
@@ -19,7 +19,7 @@ button config format
 button config default  
 `1:2:3:4:3:4:2:1:0:5:0:0:0:0:0:0:0:0:0:0:21:0:0:0` 
 
-##Actions
+## Actions
 1 = backlight up  
 2 = backlight down  
 3 = volume up  
