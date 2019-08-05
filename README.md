@@ -30,7 +30,7 @@ button config default
 8 = backlight rotate up  
 9 = backlight rotate down  
 10 = backlight min max  
-11 = remount /mnt as rw
-12 = remount /mnt as ro
+11 = remount /mnt as rw  
+12 = remount /mnt as ro  
 20 = kill, sync and shutdown  
 21 = kill. Does not work on most emulators. do not use  
