@@ -45,10 +45,12 @@
 #define MIYOO_VOL_FILE        "/mnt/.volume.conf"
 #define MIYOO_LID_CONF        "/sys/devices/platform/backlight/backlight/backlight/brightness"
 #define MIYOO_BUTTON_FILE     "/mnt/.buttons.conf"
+#define MIYOO_BATTERY    "/sys/devices/platform/soc/1c23400.battery/power_supply/miyoo-battery/voltage_now"
+#define MIYOO_BATTERY_FILE    "/mnt/.batterylow.conf"
 
-#define BUTTON_COUNT	12
+#define BUTTON_COUNT	10
 
-unsigned char actionmap[BUTTON_COUNT*2]={1,2,3,4,3,4,2,1,0,5,0,0,0,0,0,0,0,0,0,0,20,0,0,0};
+unsigned char actionmap[BUTTON_COUNT*2]={1,2,3,4,3,4,2,1,0,5,0,0,0,0,0,0,0,0,20,0};
 
 static void create_daemon(void)
 {
@@ -86,15 +88,14 @@ static void create_daemon(void)
   }
 }
 
-static int read_conf(const char *file)
+static int read_int(int fd, int default_val)
 {
-  int i, fd;
-  int val = 5;
+  int i;
+  int val = default_val;
   char buf[10]={0};
   
-  fd = open(file, O_RDWR);
   if(fd < 0){
-    val = -1;
+    return -1;
   }
   else{
     read(fd, buf, sizeof(buf));
@@ -111,8 +112,17 @@ static int read_conf(const char *file)
     }
     val = atoi(buf);
   }
-  close(fd);
   return val;
+}
+
+static int read_conf(const char *file)
+{
+  int i, fd;
+  
+  fd = open(file, O_RDWR);
+  i = read_int(fd,5);
+  close(fd);
+  return i;
 }
 
 static void write_conf(const char *file, int val)
@@ -229,7 +239,9 @@ int main(int argc, char** argv)
   int lid=0, vol=0, fbp=0;
   char buf[255]={0};
   unsigned long ret, lastret;
-  int fb0, kbd, snd, vir;
+  int fb0, kbd, snd, vir, battery_file;
+  int battery_low=4500;
+
   setvbuf (stdout, NULL, _IONBF, 0);
 
   create_daemon();
@@ -267,6 +279,10 @@ int main(int argc, char** argv)
   // info fb0
   info_fb0(fb0, lid, vol, 0);
 
+  //battery
+  //battery_low = read_conf(MIYOO_BATTERY_FILE);
+  //battery_file = open(MIYOO_BATTERY, O_RDWR);
+
   // update version
   ioctl(fb0, MIYOO_FB0_GET_VER, &ret);
   ioctl(kbd, MIYOO_KBD_SET_VER, ret);
@@ -274,10 +290,44 @@ int main(int argc, char** argv)
   ioctl(vir, MIYOO_VIR_SET_VER, ret);
   close(vir);
   lastret = 0;
-  int counter = 0;
-  int actioned = 0;
+  unsigned int counter = 0;
+  unsigned int actioned = 0;
+  unsigned int battery_counter = 0;
+  unsigned int battery_flash_counter = 0;
   while(1){
     usleep(40000);
+    /*
+    if(battery_counter > 1000 && battery_flash_counter == 0) {
+      int battery_level = read_int(battery_file,0);
+      if(battery_level > 0 && battery_level < battery_low) {
+        battery_flash_counter++;
+      } else {
+        battery_counter = 0;
+      }
+    }
+
+    if(battery_flash_counter > 0 && battery_counter % 500 == 0) {
+        if(battery_flash_counter%2 == 0 && battery_flash_counter <= 6) {
+          //bright
+          sprintf(buf, "echo %d > %s", 10, MIYOO_LID_CONF); 
+          system(buf); 
+        } else { 
+          sprintf(buf, "echo %d > %s", 2, MIYOO_LID_CONF); 
+          system(buf); 
+        }
+        if(battery_flash_counter > 6) {
+          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF); 
+          system(buf); 
+          battery_flash_counter = 0;
+          battery_counter = 0;
+        } else {
+          battery_flash_counter++;
+        }
+
+    }
+    battery_counter++;
+    */
+
     ioctl(kbd, MIYOO_KBD_GET_HOTKEY, &ret);
     if(ret == 0 && lastret == 0){
       actioned = 0;
@@ -461,6 +511,7 @@ int main(int argc, char** argv)
   close(fb0);
   close(kbd);
   close(snd);
+  close(battery_file);
   return EXIT_SUCCESS;
 }
 
