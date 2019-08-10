@@ -115,12 +115,12 @@ static int read_int(int fd, int default_val)
   return val;
 }
 
-static int read_conf(const char *file)
+static int read_conf(const char *file, int default_val)
 {
   int i, fd;
   
   fd = open(file, O_RDWR);
-  i = read_int(fd,5);
+  i = read_int(fd,default_val);
   close(fd);
   return i;
 }
@@ -240,7 +240,7 @@ int main(int argc, char** argv)
   char buf[255]={0};
   unsigned long ret, lastret;
   int fb0, kbd, snd, vir ;
-  int battery_low=4500;
+  int battery_low=3550;
   FILE *battery_file;
   char wstr[100];
   int battery_level; 
@@ -252,13 +252,13 @@ int main(int argc, char** argv)
   snd = open("/dev/miyoo_snd", O_RDWR);
 
   // fp, bp
-  fbp = read_conf(MIYOO_FBP_FILE);
+  fbp = read_conf(MIYOO_FBP_FILE, 5);
   if(fbp > 0){
     ioctl(fb0, MIYOO_FB0_SET_FPBP, fbp);
   }
 
   // backlight
-  lid = read_conf(MIYOO_LID_FILE);
+  lid = read_conf(MIYOO_LID_FILE, 5);
   if(lid < 0){
     lid = 5;
     write_conf(MIYOO_LID_FILE, lid);
@@ -267,7 +267,7 @@ int main(int argc, char** argv)
   system(buf);
   
   // volume
-  vol = read_conf(MIYOO_VOL_FILE);
+  vol = read_conf(MIYOO_VOL_FILE,5);
   if(vol < 0){
     vol = 5;
     write_conf(MIYOO_VOL_FILE, vol);
@@ -282,8 +282,7 @@ int main(int argc, char** argv)
   info_fb0(fb0, lid, vol, 0);
 
   //battery
-  //battery_low = read_conf(MIYOO_BATTERY_FILE);
-  battery_low = 3550; 
+  battery_low = read_conf(MIYOO_BATTERY_FILE,3550);
   //battery_file = open(MIYOO_BATTERY, O_RDWR);
 
   // update version
@@ -391,7 +390,7 @@ int main(int argc, char** argv)
       case 5:
         //printf("mute\n");
         if(vol == 0){
-          vol = read_conf(MIYOO_VOL_FILE);
+          vol = read_conf(MIYOO_VOL_FILE,5);
           if(vol < 1){
             vol = 5;
             write_conf(MIYOO_VOL_FILE, vol);
