@@ -45,7 +45,7 @@
 #define MIYOO_VOL_FILE        "/mnt/.volume.conf"
 #define MIYOO_LID_CONF        "/sys/devices/platform/backlight/backlight/backlight/brightness"
 #define MIYOO_BUTTON_FILE     "/mnt/.buttons.conf"
-#define MIYOO_BATTERY    "/sys/devices/platform/soc/1c23400.battery/power_supply/miyoo-battery/voltage_now"
+#define MIYOO_BATTERY    "/sys/class/power_supply/miyoo-battery/voltage_now"
 #define MIYOO_BATTERY_FILE    "/mnt/.batterylow.conf"
 
 #define BUTTON_COUNT	10
@@ -239,9 +239,11 @@ int main(int argc, char** argv)
   int lid=0, vol=0, fbp=0;
   char buf[255]={0};
   unsigned long ret, lastret;
-  int fb0, kbd, snd, vir, battery_file;
+  int fb0, kbd, snd, vir ;
   int battery_low=4500;
-
+  FILE *battery_file;
+  char wstr[100];
+  int battery_level; 
   setvbuf (stdout, NULL, _IONBF, 0);
 
   create_daemon();
@@ -281,6 +283,7 @@ int main(int argc, char** argv)
 
   //battery
   //battery_low = read_conf(MIYOO_BATTERY_FILE);
+  battery_low = 3550; 
   //battery_file = open(MIYOO_BATTERY, O_RDWR);
 
   // update version
@@ -296,37 +299,32 @@ int main(int argc, char** argv)
   unsigned int battery_flash_counter = 0;
   while(1){
     usleep(40000);
-    /*
-    if(battery_counter > 1000 && battery_flash_counter == 0) {
-      int battery_level = read_int(battery_file,0);
-      if(battery_level > 0 && battery_level < battery_low) {
+    
+    if (battery_counter == 0){
+        battery_file = fopen(MIYOO_BATTERY, "r");
+        while ( (fgets(wstr,100,battery_file)) != NULL ) {
+	  battery_level = atoi(wstr) ;
+          //printf("%s\n", wstr);
+        }
+        fclose(battery_file);
+    }
+
+    battery_counter++;
+    battery_counter%=750;
+
+      if(battery_level > 0 && battery_level <  battery_low) {
         battery_flash_counter++;
       } else {
-        battery_counter = 0;
+        battery_flash_counter = 0;
       }
-    }
 
-    if(battery_flash_counter > 0 && battery_counter % 500 == 0) {
-        if(battery_flash_counter%2 == 0 && battery_flash_counter <= 6) {
+    battery_flash_counter%=1000;
+    
+    if ((battery_flash_counter<99)&&(battery_flash_counter>10)) {
           //bright
-          sprintf(buf, "echo %d > %s", 10, MIYOO_LID_CONF); 
+          sprintf(buf, "echo %d > %s", ((battery_flash_counter % 9) +1), MIYOO_LID_CONF); 
           system(buf); 
-        } else { 
-          sprintf(buf, "echo %d > %s", 2, MIYOO_LID_CONF); 
-          system(buf); 
-        }
-        if(battery_flash_counter > 6) {
-          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF); 
-          system(buf); 
-          battery_flash_counter = 0;
-          battery_counter = 0;
-        } else {
-          battery_flash_counter++;
-        }
-
     }
-    battery_counter++;
-    */
 
     ioctl(kbd, MIYOO_KBD_GET_HOTKEY, &ret);
     if(ret == 0 && lastret == 0){
@@ -350,6 +348,7 @@ int main(int argc, char** argv)
 	  ;
 	  break;
       case 1:
+
         //printf("backlight++\n");
         if(lid < 10){
           lid+= 1;
@@ -358,6 +357,8 @@ int main(int argc, char** argv)
           system(buf);
           info_fb0(fb0, lid, vol, 1);
         }
+/**/
+//    battery_counter++;
         break;
       case 2:
         //printf("backlight--\n");
@@ -511,7 +512,8 @@ int main(int argc, char** argv)
   close(fb0);
   close(kbd);
   close(snd);
-  close(battery_file);
+//  close(battery_file);
+
   return EXIT_SUCCESS;
 }
 
