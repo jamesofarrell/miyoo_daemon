@@ -1,5 +1,11 @@
 # miyoo_daemon
 
+## Battery Low Warning
+Will flash screen when battery reports lower than 3550 by default.  
+battery low config  
+`/mnt/.batterylow.conf`  
+default: 3550  
+
 ## Default Button Mappings
 
 | BUTTON | ACTION |

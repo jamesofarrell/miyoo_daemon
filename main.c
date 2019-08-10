@@ -95,7 +95,7 @@ static int read_int(int fd, int default_val)
   char buf[10]={0};
   
   if(fd < 0){
-    return -1;
+    return default_val;
   }
   else{
     read(fd, buf, sizeof(buf));
@@ -252,7 +252,7 @@ int main(int argc, char** argv)
   snd = open("/dev/miyoo_snd", O_RDWR);
 
   // fp, bp
-  fbp = read_conf(MIYOO_FBP_FILE, 5);
+  fbp = read_conf(MIYOO_FBP_FILE, -1);
   if(fbp > 0){
     ioctl(fb0, MIYOO_FB0_SET_FPBP, fbp);
   }
