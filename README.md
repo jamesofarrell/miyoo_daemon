@@ -1,7 +1,7 @@
 # miyoo_daemon
 
 ## Battery Low Warning
-Will flash screen when battery reports lower than 3550 by default.  
+Will flash screen or vibrate when battery reports lower than 3550 by default.  
 battery low config  
 `/mnt/.batterylow.conf`  
 default: 3550  
@@ -10,10 +10,10 @@ default: 3550
 
 | BUTTON | ACTION |
 |  --- | --- |
-| X, Right | Brightness Up |
-| A, Left | Brightness Down |
-| B, Down | Volume Down |
-| Y, Up | Volume Up |
+| Right | Brightness Up |
+| Left | Brightness Down |
+| Down | Volume Down |
+| Up | Volume Up |
 | Start | Mute |
 | Hold Select | Quick Shutdown |
 
@@ -23,7 +23,7 @@ button config location
 button config format  
 `x:a:y:b:up:down:left:right:select:start:hold-x:hold-a:hold-y:hold-b:hold-up:hold-down:hold-left:hold-right:hold-select:hold-start`  
 button config default  
-`1:2:3:4:3:4:2:1:0:5:0:0:0:0:0:0:0:0:21:0` 
+`0:0:0:0:3:4:2:1:0:5:0:0:0:0:0:0:0:0:21:0` 
 
 ## Actions
 1 = backlight up  
