@@ -50,7 +50,7 @@
 
 #define BUTTON_COUNT	10
 
-unsigned char actionmap[BUTTON_COUNT*2]={1,2,3,4,3,4,2,1,0,5,0,0,0,0,0,0,0,0,20,0};
+unsigned char actionmap[BUTTON_COUNT*2]={0,0,0,0,3,4,2,1,0,5,0,0,0,0,0,0,0,0,20,0};
 
 static void create_daemon(void)
 {
