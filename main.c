@@ -238,8 +238,8 @@ int main(int argc, char** argv)
 {
   int lid=0, vol=0, fbp=0;
   char buf[255]={0};
-  unsigned long ret, lastret;
-  int fb0, kbd, snd, vir ;
+  unsigned long ret, lastret, version;
+  int fb0, kbd, snd, vir;
   int battery_low=3550;
   FILE *battery_file;
   char wstr[100];
@@ -287,6 +287,7 @@ int main(int argc, char** argv)
 
   // update version
   ioctl(fb0, MIYOO_FB0_GET_VER, &ret);
+  version = ret;
   ioctl(kbd, MIYOO_KBD_SET_VER, ret);
   vir = open("/dev/miyoo_vir", O_RDWR);
   ioctl(vir, MIYOO_VIR_SET_VER, ret);
@@ -317,12 +318,26 @@ int main(int argc, char** argv)
         battery_flash_counter = 0;
       }
 
-    battery_flash_counter%=1000;
+    battery_flash_counter%=4000;
     
     if ((battery_flash_counter<99)&&(battery_flash_counter>10)) {
           //bright
-          sprintf(buf, "echo %d > %s", ((battery_flash_counter % 9) +1), MIYOO_LID_CONF); 
-          system(buf); 
+      if(version<3) {
+              sprintf(buf, "echo %d > %s", ((battery_flash_counter % 6) +4), MIYOO_LID_CONF); 
+              system(buf); 
+      } else if(battery_flash_counter == 11) {
+        vir = open("/dev/miyoo_vir", O_RDWR);
+          if(vir > 0){
+            ioctl(vir, MIYOO_VIR_SET_MODE, 0);
+            close(vir);
+          }
+      }
+    } else if(battery_flash_counter==100 && version > 2 ) {
+      vir = open("/dev/miyoo_vir", O_RDWR);
+       if(vir > 0){
+         ioctl(vir, MIYOO_VIR_SET_MODE, 1);
+         close(vir);
+       }
     }
 
     ioctl(kbd, MIYOO_KBD_GET_HOTKEY, &ret);
