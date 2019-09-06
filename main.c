@@ -320,19 +320,19 @@ int main(int argc, char** argv)
 
     battery_flash_counter%=4000;
     
-    if ((battery_flash_counter<99)&&(battery_flash_counter>10)) {
+    if ((battery_flash_counter<299)&&(battery_flash_counter>210)) {
           //bright
       if(version<3) {
               sprintf(buf, "echo %d > %s", ((battery_flash_counter % 6) +4), MIYOO_LID_CONF); 
               system(buf); 
-      } else if(battery_flash_counter == 11) {
+      } else if(battery_flash_counter == 211) {
         vir = open("/dev/miyoo_vir", O_RDWR);
           if(vir > 0){
             ioctl(vir, MIYOO_VIR_SET_MODE, 0);
             close(vir);
           }
       }
-    } else if(battery_flash_counter==100 && version > 2 ) {
+    } else if(battery_flash_counter==300 && version > 2 ) {
       vir = open("/dev/miyoo_vir", O_RDWR);
        if(vir > 0){
          ioctl(vir, MIYOO_VIR_SET_MODE, 1);
