@@ -50,7 +50,8 @@
 
 #define BUTTON_COUNT	10
 
-unsigned char actionmap[BUTTON_COUNT*2]={0,0,0,0,3,4,2,1,0,5,0,0,0,0,0,0,0,0,20,0};
+unsigned char actionmap[BUTTON_COUNT*2]={0,0,0,0,3,4,2,1,0,13,0,0,0,0,0,0,0,0,20,0};
+
 
 static void create_daemon(void)
 {
@@ -497,6 +498,9 @@ int main(int argc, char** argv)
           break;
       case 12:
           system("mount -o remount,ro,utf8 /dev/mmcblk0p4");
+          break;
+      case 13:
+          system("sh -c /mnt/apps/fbgrab/screenshot.sh");
           break;
       case 20:
         {
