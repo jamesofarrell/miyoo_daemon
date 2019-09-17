@@ -14,7 +14,7 @@ default: 3550
 | Left | Brightness Down |
 | Down | Volume Down |
 | Up | Volume Up |
-| Start | Mute |
+| Start | Screenshot |
 | Hold Select | Quick Shutdown |
 
 ## Config
@@ -23,7 +23,7 @@ button config location
 button config format  
 `x:a:y:b:up:down:left:right:select:start:hold-x:hold-a:hold-y:hold-b:hold-up:hold-down:hold-left:hold-right:hold-select:hold-start`  
 button config default  
-`0:0:0:0:3:4:2:1:0:5:0:0:0:0:0:0:0:0:21:0` 
+`0:0:0:0:3:4:2:1:0:13:0:0:0:0:0:0:0:0:21:0` 
 
 ## Actions
 1 = backlight up  
@@ -38,5 +38,6 @@ button config default
 10 = backlight min max  
 11 = remount /mnt as rw  
 12 = remount /mnt as ro  
+12 = screenshot using fbgrab
 20 = kill, sync and shutdown  
 21 = kill. Does not work on most emulators. do not use  
